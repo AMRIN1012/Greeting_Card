@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="softLav" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f2d8f8"/>
+      <stop offset="100%" stop-color="#e8c8f3"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#softLav)" />
+
+  <!-- Polka dots -->
+  <g fill="#cfa3e8" opacity="0.9">
+    <circle cx="70" cy="70" r="14" />
+    <circle cx="130" cy="80" r="10" />
+    <circle cx="220" cy="60" r="8" />
+    <circle cx="980" cy="140" r="12" />
+    <circle cx="880" cy="240" r="9" />
+    <circle cx="80" cy="1200" r="11" />
+  </g>
+
+  <!-- hand-drawn frame -->
+  <g stroke="#8b54a8" stroke-width="6" fill="none">
+    <rect x="140" y="140" width="800" height="1070" rx="4"/>
+  </g>
+
+  <!-- corner flowers -->
+  <g fill="#a34fb8" opacity="0.95">
+    <ellipse cx="160" cy="160" rx="40" ry="26" transform="rotate(-20 160 160)" />
+    <ellipse cx="860" cy="1000" rx="44" ry="28" transform="rotate(10 860 1000)" />
+  </g>
+</svg>

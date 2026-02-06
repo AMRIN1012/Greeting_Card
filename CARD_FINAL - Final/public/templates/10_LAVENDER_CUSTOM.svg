@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="lavGrad" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#e9d3f2"/>
+      <stop offset="100%" stop-color="#d7b8ea"/>
+    </linearGradient>
+    <filter id="soft-blur"><feGaussianBlur stdDeviation="18"/></filter>
+  </defs>
+
+  <rect width="100%" height="100%" fill="url(#lavGrad)" />
+
+  <!-- translucent floral overlays -->
+  <g fill="#ffffff" opacity="0.08" transform="translate(40,40)">
+    <circle cx="150" cy="110" r="120" />
+    <circle cx="880" cy="180" r="140" />
+    <circle cx="240" cy="980" r="160" />
+    <circle cx="960" cy="980" r="170" />
+  </g>
+
+  <!-- Center framed panel -->
+  <g>
+    <rect x="80" y="90" width="920" height="1170" fill="#f3e6fa" stroke="#b583d5" stroke-width="6" rx="6" />
+    <rect x="95" y="105" width="890" height="1140" fill="none" stroke="#8f5aa8" stroke-width="4" />
+  </g>
+
+  <!-- subtle pattern -->
+  <g fill="#ffffff" opacity="0.05">
+    <circle cx="420" cy="240" r="8" />
+    <circle cx="480" cy="320" r="6" />
+    <circle cx="720" cy="260" r="7" />
+    <circle cx="260" cy="1120" r="6" />
+    <circle cx="840" cy="1060" r="7" />
+  </g>
+</svg>

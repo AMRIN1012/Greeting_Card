@@ -1,0 +1,5 @@
+{
+  "name": "Creovate AI",
+  "description": "A professional-grade automated greeting card generation system that supports bulk CSV processing, multiple layout formats (Square, Portrait, Landscape), and automated text layout with template selection.",
+  "requestFramePermissions": []
+}
