@@ -205,11 +205,14 @@ export async function generateCardsLocally(dataList: CardData[]): Promise<Genera
       });
 
       // --- Message ---
-      // Re-create context for measuring because we need 'ctx' with font set
-      // We can reuse the existing ctx for measuring
       const spaceStart = recipientY + (rSize * 0.5);
       const spaceEnd = footerY - (isLandscape ? canvas.height * 0.15 : canvas.height * 0.1);
-      const availableHeight = Math.max(0, spaceEnd - spaceStart);
+
+      // Reserve space for details if they exist
+      const hasDetails = (data.date || data.time || data.venue || data.extra1 || data.extra2);
+      const detailsHeight = hasDetails ? (canvas.height * (isLandscape ? 0.25 : 0.2)) : 0;
+
+      const availableHeight = Math.max(0, spaceEnd - spaceStart - detailsHeight);
       const initialMSize = Math.round((isLandscape ? canvas.height * 0.05 : canvas.height * 0.038) * scale);
       const minMSize = Math.round(initialMSize * 0.6);
 
@@ -235,12 +238,41 @@ export async function generateCardsLocally(dataList: CardData[]): Promise<Genera
         });
       });
 
+      // --- Details Section (Date, Time, Venue, Extras) ---
+      if (hasDetails) {
+        const detailsStartY = startY + totalH + (canvas.height * 0.03);
+        const detailFontSize = Math.round((isLandscape ? canvas.height * 0.035 : canvas.height * 0.025) * scale);
+        const detailLineHeight = Math.round(detailFontSize * 1.5);
+        let currentDetailY = detailsStartY;
+
+        const detailLines: string[] = [];
+        if (data.date || data.time) detailLines.push([data.date, data.time].filter(Boolean).join(' | '));
+        if (data.venue) detailLines.push(data.venue);
+        if (data.extra1) detailLines.push(data.extra1);
+        if (data.extra2) detailLines.push(data.extra2);
+
+        detailLines.forEach((line, i) => {
+          textElements.push({
+            id: `detail-${i}-${Math.random()}`,
+            text: line,
+            x: centerX,
+            y: currentDetailY + (i * detailLineHeight),
+            fontSize: detailFontSize,
+            fontFamily: 'Inter',
+            fontColor: effectiveFontColor,
+            fontWeight: '600',
+            align: 'center',
+            baseline: 'top'
+          });
+        });
+      }
+
       // --- Sender ---
       const fSize = Math.round((isLandscape ? canvas.height * 0.08 : canvas.height * 0.055) * scale);
 
       textElements.push({
         id: `sender-${Math.random()}`,
-        text: `With love, ${data.senderName}`,
+        text: data.senderName, // Removed "With love," prefix to be more generic, handled in Input if needed or user types it
         x: centerX,
         y: footerY - fSize,
         fontSize: fSize,
@@ -334,4 +366,166 @@ function fitTextToBox(
   }
 
   return { fontSize: Math.round(fontSize), lines };
+}
+
+export function generatePreviewCard(
+  data: CardData,
+  size: CardSize = CardSize.PORTRAIT
+): GeneratedCard {
+  const template = TEMPLATES.find(t => t.id === data.templateId) || TEMPLATES[0];
+  const profile = GET_LAYOUT_PROFILE(template.id);
+  const isDarkBg = isColorDark(template.secondaryColor);
+  const dimensions = DIMENSIONS[size];
+  const isLandscape = size === CardSize.LANDSCAPE;
+
+  // Mock canvas context for text measurement (approximate)
+  // We can't easily do accurate text measurement without a real canvas context
+  // But for a "Live Preview", creating a temporary canvas context is cheap enough just for measurement
+  const canvas = document.createElement('canvas');
+  canvas.width = dimensions.width;
+  canvas.height = dimensions.height;
+  const ctx = canvas.getContext('2d');
+
+  const textElements: import('../types').TextElement[] = [];
+
+  if (ctx) {
+    const centerX = canvas.width / 2;
+    const hPadding = canvas.width * profile.hPadding;
+    const vPadding = canvas.height * profile.vPadding;
+    const maxWidth = canvas.width - (hPadding * 2);
+
+    const headerY = vPadding + (isLandscape ? canvas.height * 0.05 : canvas.height * 0.08);
+    const footerY = canvas.height - vPadding - (isLandscape ? canvas.height * 0.02 : canvas.height * 0.05);
+
+    // Handle custom font color and scale
+    const scale = (data.fontScale ?? 100) / 100;
+    const effectiveFontColor = (data.fontColor && data.fontColor.trim()) ? data.fontColor : (isDarkBg ? '#FFFFFF' : '#1A1A1A');
+
+    // --- Occasion ---
+    const hSize = Math.round((isLandscape ? canvas.height * 0.05 : canvas.height * 0.035) * scale);
+
+    if (data.occasion) {
+      textElements.push({
+        id: `occasion-preview`,
+        text: data.occasion.toUpperCase(),
+        x: centerX,
+        y: headerY - hSize,
+        fontSize: hSize,
+        fontFamily: 'Inter',
+        fontColor: effectiveFontColor,
+        fontWeight: 'bold',
+        align: 'center',
+        baseline: 'top'
+      });
+    }
+
+    // --- Recipient Name ---
+    const rSize = Math.round((isLandscape ? canvas.height * 0.1 : canvas.height * 0.07) * scale);
+    const recipientY = headerY + (rSize * 1.5);
+
+    if (data.recipientName) {
+      textElements.push({
+        id: `recipient-preview`,
+        text: `Dear ${data.recipientName},`,
+        x: centerX,
+        y: recipientY - rSize,
+        fontSize: rSize,
+        fontFamily: '"Playfair Display", serif',
+        fontColor: effectiveFontColor,
+        fontWeight: '700',
+        align: 'center',
+        baseline: 'top'
+      });
+    }
+
+    // --- Message ---
+    const spaceStart = recipientY + (rSize * 0.5);
+    const spaceEnd = footerY - (isLandscape ? canvas.height * 0.15 : canvas.height * 0.1);
+
+    // Reserve space for details
+    const hasDetails = (data.date || data.time || data.venue || data.extra1 || data.extra2);
+    const detailsHeight = hasDetails ? (canvas.height * (isLandscape ? 0.25 : 0.2)) : 0;
+
+    const availableHeight = Math.max(0, spaceEnd - spaceStart - detailsHeight);
+    const initialMSize = Math.round((isLandscape ? canvas.height * 0.05 : canvas.height * 0.038) * scale);
+    const minMSize = Math.round(initialMSize * 0.6);
+
+    if (data.message) {
+      const fit = fitTextToBox(ctx, data.message, 'Inter', initialMSize, minMSize, maxWidth, availableHeight);
+      const lHeight = Math.round(fit.fontSize * 1.38);
+      const totalH = fit.lines.length * lHeight;
+      let startY = spaceStart + Math.round((availableHeight - totalH) / 2);
+      if (startY < spaceStart + 8) startY = spaceStart + 8;
+
+      fit.lines.forEach((line, i) => {
+        textElements.push({
+          id: `message-${i}-preview`,
+          text: line,
+          x: centerX,
+          y: startY + (i * lHeight),
+          fontSize: fit.fontSize,
+          fontFamily: 'Inter',
+          fontColor: effectiveFontColor,
+          fontWeight: '400',
+          align: 'center',
+          baseline: 'top'
+        });
+      });
+
+      // --- Details Section (Date, Time, Venue, Extras) ---
+      if (hasDetails) {
+        const detailsStartY = startY + totalH + (canvas.height * 0.03);
+        const detailFontSize = Math.round((isLandscape ? canvas.height * 0.035 : canvas.height * 0.025) * scale);
+        const detailLineHeight = Math.round(detailFontSize * 1.5);
+        let currentDetailY = detailsStartY;
+
+        const detailLines: string[] = [];
+        if (data.date || data.time) detailLines.push([data.date, data.time].filter(Boolean).join(' | '));
+        if (data.venue) detailLines.push(data.venue);
+        if (data.extra1) detailLines.push(data.extra1);
+        if (data.extra2) detailLines.push(data.extra2);
+
+        detailLines.forEach((line, i) => {
+          textElements.push({
+            id: `detail-${i}-preview`,
+            text: line,
+            x: centerX,
+            y: currentDetailY + (i * detailLineHeight),
+            fontSize: detailFontSize,
+            fontFamily: 'Inter',
+            fontColor: effectiveFontColor,
+            fontWeight: '600',
+            align: 'center',
+            baseline: 'top'
+          });
+        });
+      }
+    }
+
+    // --- Sender ---
+    const fSize = Math.round((isLandscape ? canvas.height * 0.08 : canvas.height * 0.055) * scale);
+
+    if (data.senderName) {
+      textElements.push({
+        id: `sender-preview`,
+        text: data.senderName,
+        x: centerX,
+        y: footerY - fSize,
+        fontSize: fSize,
+        fontFamily: '"Dancing Script", cursive',
+        fontColor: effectiveFontColor,
+        fontWeight: '600',
+        align: 'center',
+        baseline: 'top'
+      });
+    }
+  }
+
+  return {
+    id: 'live-preview',
+    data,
+    size,
+    imageUrl: template.bgUrl, // Use raw URL for preview
+    textElements
+  };
 }

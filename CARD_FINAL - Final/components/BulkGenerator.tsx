@@ -46,12 +46,13 @@ const BulkGenerator: React.FC<Props> = ({ onGenerate, isGenerating }) => {
       const headers = splitCSVLine(headerLine).map(h => h.trim());
 
       const required = ['recipientName', 'occasion', 'message', 'senderName'];
-      for (const r of required) {
-        if (!headers.includes(r)) {
-          setData([]);
-          setParseErrors([`Missing required header: ${r}. Expected headers: recipientName, occasion, message, senderName[, fontColor, fontScale]`]);
-          return;
-        }
+
+      // Validation: Check if required headers exist
+      const missing = required.filter(r => !headers.includes(r));
+      if (missing.length > 0) {
+        setData([]);
+        setParseErrors([`Missing headers: ${missing.join(', ')}. Required: recipientName, occasion, message, senderName. Optional: date, time, venue, extra1, extra2`]);
+        return;
       }
 
       const parsedData: any[] = [];
@@ -62,9 +63,13 @@ const BulkGenerator: React.FC<Props> = ({ onGenerate, isGenerating }) => {
         if (!line.trim()) continue;
         const values = splitCSVLine(line);
         const row: any = {};
-        for (let c = 0; c < headers.length; c++) {
-          row[headers[c]] = values[c] !== undefined ? values[c] : '';
-        }
+
+        // Map values to headers
+        headers.forEach((h, index) => {
+          if (values[index] !== undefined) {
+            row[h] = values[index].trim();
+          }
+        });
 
         // Validate required fields
         if (!row.recipientName || !row.occasion || !row.message || !row.senderName) {
@@ -77,14 +82,19 @@ const BulkGenerator: React.FC<Props> = ({ onGenerate, isGenerating }) => {
           const n = Number(row.fontScale);
           row.fontScale = isNaN(n) ? undefined : n;
         }
-        row.fontColor = row.fontColor || undefined;
 
+        // Ensure all possible fields are present (even if undefined/empty)
         parsedData.push({
-          recipientName: row.recipientName.trim(),
-          occasion: row.occasion.trim(),
-          message: row.message.trim(),
-          senderName: row.senderName.trim(),
-          fontColor: row.fontColor?.trim(),
+          recipientName: row.recipientName,
+          occasion: row.occasion,
+          message: row.message,
+          senderName: row.senderName,
+          date: row.date,
+          time: row.time,
+          venue: row.venue,
+          extra1: row.extra1,
+          extra2: row.extra2,
+          fontColor: row.fontColor || undefined,
           fontScale: row.fontScale
         });
       }
@@ -101,7 +111,7 @@ const BulkGenerator: React.FC<Props> = ({ onGenerate, isGenerating }) => {
   };
 
   const downloadSample = () => {
-    const csvContent = "recipientName,occasion,message,senderName,fontColor,fontScale\nJohn Doe,Birthday,\"Hope your day, have a great time!\",Management,#FFFFFF,100\nJane Smith,Farewell,\"Good luck on your next adventure, we will miss you\",The Team,#FFB6C1,90";
+    const csvContent = "recipientName,occasion,message,senderName,date,time,venue,extra1,extra2,fontColor,fontScale\nJohn & Jane,Wedding,Join us!,The Parents,2024-12-25,5:00 PM,Grand Hall,RSVP 123,,#FFFFFF,100\nSarah,Birthday,HBD!,Mom,,,Party,,#FFB6C1,90";
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -116,7 +126,7 @@ const BulkGenerator: React.FC<Props> = ({ onGenerate, isGenerating }) => {
         <Info className="flex-shrink-0 text-indigo-300" size={18} />
         <div>
           <p className="font-semibold mb-1">CSV Format Requirements:</p>
-          <p className="text-xs opacity-80">Headers: recipientName, occasion, message, senderName, fontColor (hex), fontScale (number)</p>
+          <p className="text-xs opacity-80">Headers: recipientName, occasion, message, senderName, date, time, venue, extra1, extra2, fontColor (hex), fontScale (number)</p>
           <button onClick={downloadSample} className="mt-2 text-indigo-300 underline font-bold">Download Sample Template</button>
         </div>
       </div>

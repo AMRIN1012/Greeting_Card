@@ -16,14 +16,23 @@ export interface Template {
   primaryColor: string;
   secondaryColor: string;
   bgUrl: string;
+  tags?: string[];
 }
 
 export interface CardData {
   recipientName: string;
-  occasion: string;
+  occasion: string; // Used as the "Title" or "Event Name"
   message: string;
   senderName: string;
   templateId: string;
+
+  // Optional detailed fields
+  date?: string;
+  time?: string;
+  venue?: string;
+  extra1?: string; // Flexible field (e.g., RSVP, Award Title)
+  extra2?: string; // Flexible field (e.g., Dress Code, Signature)
+
   // Optional UI customizations
   fontColor?: string; // hex color string to override text/accent colors
   fontScale?: number; // percentage (100 = default) scaling for typography
@@ -49,4 +58,19 @@ export interface GeneratedCard {
   size: CardSize;
   imageUrl: string;
   textElements: TextElement[];
+}
+
+export interface VideoFrame {
+  id: string;
+  imageFile: File; // Store the raw file for now
+  imageUrl: string; // Preview URL
+  textOverlay: string;
+  order: number;
+}
+
+export interface GeneratedVideo {
+  id: string;
+  frames: VideoFrame[];
+  gifUrl?: string; // Blob URL for the generated GIF
+  createdAt: Date;
 }

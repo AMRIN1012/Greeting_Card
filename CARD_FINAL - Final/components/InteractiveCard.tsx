@@ -205,11 +205,11 @@ export const InteractiveCard: React.FC<Props> = ({ card, onUpdate }) => {
                 style={{
                     aspectRatio: `${dim.width}/${dim.height}`,
                     // Fix: Explicitly drive size based on aspect ratio to prevent collapse
-                    width: isModal ? (dim.width >= dim.height ? '100%' : 'auto') : '100%',
-                    height: isModal ? (dim.width < dim.height ? '100%' : 'auto') : '100%',
+                    width: dim.width >= dim.height ? '100%' : 'auto',
+                    height: dim.width < dim.height ? '100%' : 'auto',
                     maxWidth: '100%',
                     maxHeight: '100%',
-                    display: isModal ? 'flex' : 'block',
+                    display: 'flex', // Use flex to center content safely
                     alignItems: 'center',
                     justifyContent: 'center',
                     containerType: 'inline-size'
@@ -242,7 +242,7 @@ export const InteractiveCard: React.FC<Props> = ({ card, onUpdate }) => {
                                     left: `${(el.x / dim.width) * 100}%`,
                                     top: `${(el.y / dim.height) * 100}%`,
                                     fontFamily: el.fontFamily,
-                                    fontSize: `max(12px, ${(el.fontSize / dim.width) * 100}cqw)`,
+                                    fontSize: `${(el.fontSize / dim.width) * 100}cqw`,
                                     color: el.fontColor,
                                     fontWeight: el.fontWeight,
                                     fontStyle: el.fontStyle || 'normal',
@@ -272,29 +272,35 @@ export const InteractiveCard: React.FC<Props> = ({ card, onUpdate }) => {
     return (
         <>
             {/* --- Main Card View --- */}
-            <div className="bg-slate-900 rounded-2xl shadow-sm border border-slate-800 overflow-hidden group relative">
-                {renderCanvas(mainContainerRef, handleMainDrag, 'grid')}
+            <div className="bg-slate-900 rounded-2xl shadow-sm border border-slate-800 overflow-hidden group relative flex flex-col h-full w-full">
+                {/* Canvas Area - Fixed Aspect Ratio Container */}
+                <div
+                    className="w-full aspect-square bg-slate-950/50 relative flex items-center justify-center p-6 overflow-hidden"
+                    style={{ aspectRatio: '1/1' }}
+                >
+                    {renderCanvas(mainContainerRef, handleMainDrag, 'grid')}
 
-                {/* Actions Overlay */}
-                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                    <button onClick={handleStartEditing} className="bg-slate-800/90 text-indigo-400 p-2 rounded-full hover:bg-indigo-600 hover:text-white transition-all shadow-xl backdrop-blur-sm transform hover:scale-105" title="Edit Text">
-                        <Edit2 size={20} />
-                    </button>
-                    <button onClick={handleDownload} className="bg-slate-800/90 text-slate-100 p-2 rounded-full hover:bg-indigo-600 hover:text-white transition-all shadow-xl backdrop-blur-sm transform hover:scale-105" title="Download PNG">
-                        <Download size={20} />
-                    </button>
-                    <button onClick={handleView} className="bg-slate-800/90 text-slate-100 p-2 rounded-full hover:bg-indigo-600 hover:text-white transition-all shadow-xl backdrop-blur-sm transform hover:scale-105" title="View Full Resolution">
-                        <ExternalLink size={20} />
-                    </button>
+                    {/* Actions Overlay */}
+                    <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                        <button onClick={handleStartEditing} className="bg-slate-800/90 text-indigo-400 p-2 rounded-full hover:bg-indigo-600 hover:text-white transition-all shadow-xl backdrop-blur-sm transform hover:scale-105" title="Edit Text">
+                            <Edit2 size={20} />
+                        </button>
+                        <button onClick={handleDownload} className="bg-slate-800/90 text-slate-100 p-2 rounded-full hover:bg-indigo-600 hover:text-white transition-all shadow-xl backdrop-blur-sm transform hover:scale-105" title="Download PNG">
+                            <Download size={20} />
+                        </button>
+                        <button onClick={handleView} className="bg-slate-800/90 text-slate-100 p-2 rounded-full hover:bg-indigo-600 hover:text-white transition-all shadow-xl backdrop-blur-sm transform hover:scale-105" title="View Full Resolution">
+                            <ExternalLink size={20} />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Footer Info */}
-                <div className="p-4 flex items-center justify-between bg-slate-900 border-t border-slate-800">
-                    <div>
-                        <h3 className="font-bold text-slate-100 truncate max-w-[150px]">{card.data.recipientName}</h3>
-                        <p className="text-xs text-slate-400">{card.data.occasion}</p>
+                <div className="p-4 flex items-center justify-between bg-slate-900 border-t border-slate-800 mt-auto">
+                    <div className="min-w-0">
+                        <h3 className="font-bold text-slate-100 truncate pr-2">{card.data.recipientName}</h3>
+                        <p className="text-xs text-slate-400 truncate">{card.data.occasion}</p>
                     </div>
-                    <span className="px-2 py-1 bg-slate-800 text-[10px] font-black uppercase text-slate-300 rounded tracking-widest border border-slate-700">
+                    <span className="shrink-0 px-2 py-1 bg-slate-800 text-[10px] font-black uppercase text-slate-300 rounded tracking-widest border border-slate-700">
                         {card.size}
                     </span>
                 </div>
